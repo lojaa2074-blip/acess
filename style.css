@@ -230,6 +230,7 @@ body{
 }
 .icon-btn:active{transform:scale(0.92);}
 .icon-btn.copy:hover{background:var(--green-tint); color:var(--green-dark); border-color:var(--green);}
+.icon-btn.toggle-senha:hover{background:var(--green-tint); color:var(--green-dark); border-color:var(--green);}
 .icon-btn.edit:hover{background:#eaf1f8; color:var(--blue); border-color:var(--blue-2);}
 .icon-btn.delete{color:var(--danger); border-color:var(--border);}
 .icon-btn.delete:hover{background:var(--danger-tint); border-color:var(--danger);}
@@ -302,12 +303,86 @@ body{
 }
 #modalForm input:focus{border-color:var(--green);}
 
+.input-icon-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.input-icon-wrap input{
+  width:100%;
+  padding-right:44px;
+}
+.input-icon-btn{
+  position:absolute;
+  right:6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  border:none;
+  background:transparent;
+  color:var(--text-soft);
+  cursor:pointer;
+  border-radius:7px;
+}
+.input-icon-btn:hover{background:var(--green-tint); color:var(--green-dark);}
+.input-icon-btn:active{transform:scale(0.92);}
+
 .modal-actions{
   display:flex;
   justify-content:flex-end;
   gap:10px;
   margin-top:8px;
 }
+
+/* ---------- tela de bloqueio ---------- */
+.lock-screen{
+  position:fixed;
+  inset:0;
+  background:var(--blue);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:500;
+  padding:20px;
+}
+.lock-card{
+  background:var(--white);
+  border-radius:18px;
+  padding:36px 28px;
+  max-width:360px;
+  width:100%;
+  text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,0.35);
+}
+.lock-icon{
+  width:56px;
+  height:56px;
+  margin:0 auto 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--green-tint);
+  border-radius:50%;
+  color:var(--green-dark);
+}
+.lock-card h2{margin:0 0 6px; color:var(--blue); font-size:20px;}
+.lock-card p{margin:0 0 20px; color:var(--text-soft); font-size:14px;}
+#lockForm{display:flex; flex-direction:column; gap:12px;}
+#lockPassword{
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  padding:13px 14px;
+  font-size:16px;
+  text-align:center;
+  outline:none;
+  font-family:inherit;
+  color:var(--text);
+}
+#lockPassword:focus{border-color:var(--green);}
+.lock-error{color:var(--danger); font-size:13px; margin:-4px 0 0;}
+.lock-btn{width:100%; justify-content:center; padding:13px;}
 
 /* ---------- toast ---------- */
 .toast{

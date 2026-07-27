@@ -27,6 +27,20 @@ const fieldCodigo = document.getElementById("fieldCodigo");
 const fieldNome = document.getElementById("fieldNome");
 const fieldCnpj = document.getElementById("fieldCnpj");
 const fieldSenha = document.getElementById("fieldSenha");
+const toggleFieldSenha = document.getElementById("toggleFieldSenha");
+
+toggleFieldSenha.addEventListener("click", () => {
+  const isHidden = fieldSenha.type === "password";
+  fieldSenha.type = isHidden ? "text" : "password";
+  toggleFieldSenha.innerHTML = isHidden ? iconEyeOff() : iconEye();
+  toggleFieldSenha.title = isHidden ? "Ocultar senha" : "Mostrar senha";
+});
+
+function resetSenhaVisibility() {
+  fieldSenha.type = "password";
+  toggleFieldSenha.innerHTML = iconEye();
+  toggleFieldSenha.title = "Mostrar senha";
+}
 
 // Permite digitar apenas números no CNPJ, limitado a 14 dígitos
 fieldCnpj.addEventListener("input", () => {
@@ -37,6 +51,41 @@ const deleteOverlay = document.getElementById("deleteOverlay");
 const deleteText = document.getElementById("deleteText");
 
 const toast = document.getElementById("toast");
+
+// ============================================================
+// BLOQUEIO POR SENHA
+// ============================================================
+const APP_PASSWORD = "@asdf";
+const lockScreen = document.getElementById("lockScreen");
+const appContent = document.getElementById("appContent");
+const lockForm = document.getElementById("lockForm");
+const lockPassword = document.getElementById("lockPassword");
+const lockError = document.getElementById("lockError");
+
+function unlockApp() {
+  lockScreen.style.display = "none";
+  appContent.style.display = "";
+  sessionStorage.setItem("accessUnlocked", "true");
+  loadRows();
+}
+
+lockForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (lockPassword.value === APP_PASSWORD) {
+    lockError.style.display = "none";
+    unlockApp();
+  } else {
+    lockError.style.display = "block";
+    lockPassword.value = "";
+    lockPassword.focus();
+  }
+});
+
+if (sessionStorage.getItem("accessUnlocked") === "true") {
+  unlockApp();
+} else {
+  setTimeout(() => lockPassword.focus(), 100);
+}
 
 // ============================================================
 // CARREGAR DADOS
@@ -119,6 +168,9 @@ function buildRowElement(row) {
         <span class="row-label">Senha</span>
         <span class="senha-mask">••••••••</span>
       </div>
+      <button class="icon-btn toggle-senha" title="Mostrar senha" data-action="toggle-senha">
+        ${iconEye()}
+      </button>
       <button class="icon-btn edit" title="Editar" data-action="edit">
         ${iconEdit()}
       </button>
@@ -139,6 +191,15 @@ function buildRowElement(row) {
   });
   el.querySelector('[data-action="copy-senha"]').addEventListener("click", () => {
     copyToClipboard(row.senha, "Senha copiada!");
+  });
+  let senhaVisivel = false;
+  const senhaSpan = el.querySelector(".senha-mask");
+  const toggleBtn = el.querySelector('[data-action="toggle-senha"]');
+  toggleBtn.addEventListener("click", () => {
+    senhaVisivel = !senhaVisivel;
+    senhaSpan.textContent = senhaVisivel ? (row.senha || "") : "••••••••";
+    toggleBtn.innerHTML = senhaVisivel ? iconEyeOff() : iconEye();
+    toggleBtn.title = senhaVisivel ? "Ocultar senha" : "Mostrar senha";
   });
   el.querySelector('[data-action="edit"]').addEventListener("click", () => {
     openEditModal(row);
@@ -183,6 +244,7 @@ function openAddModal() {
   fieldNome.value = "";
   fieldCnpj.value = "";
   fieldSenha.value = "";
+  resetSenhaVisibility();
   modalOverlay.classList.add("active");
   setTimeout(() => fieldCodigo.focus(), 50);
 }
@@ -194,6 +256,7 @@ function openEditModal(row) {
   fieldNome.value = row.nome || "";
   fieldCnpj.value = row.cnpj || "";
   fieldSenha.value = row.senha || "";
+  resetSenhaVisibility();
   modalOverlay.classList.add("active");
   setTimeout(() => fieldCodigo.focus(), 50);
 }
@@ -333,6 +396,12 @@ function iconCopy() {
 function iconEdit() {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>`;
 }
+function iconEye() {
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+}
+function iconEyeOff() {
+  return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a20.3 20.3 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+}
 function iconTrash() {
   return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 }
@@ -340,4 +409,4 @@ function iconTrash() {
 // ============================================================
 // INICIALIZAÇÃO
 // ============================================================
-loadRows();
+// loadRows() agora é chamado dentro de unlockApp(), após a senha correta.
