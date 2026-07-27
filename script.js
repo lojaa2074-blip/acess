@@ -5,7 +5,7 @@
 const SUPABASE_URL = "https://csmbmqvvrvagktrfgeqp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbWJtcXZ2cnZhZ2t0cmZnZXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNzEyMzMsImV4cCI6MjEwMDc0NzIzM30.Y75Om7i_t4QsXOjZbGl8lzrV65I53zbzQilx1qQo8t0";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const TABLE = "access";
 
 // ---------- estado ----------
@@ -46,21 +46,27 @@ async function loadRows() {
   emptyState.style.display = "none";
   rowsContainer.innerHTML = "";
 
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select("*")
-    .order("codigo", { ascending: true });
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABLE)
+      .select("*")
+      .order("codigo", { ascending: true });
 
-  loadingState.style.display = "none";
+    if (error) {
+      loadingState.style.display = "none";
+      showToast("Erro ao carregar dados: " + error.message, "error");
+      console.error(error);
+      return;
+    }
 
-  if (error) {
-    showToast("Erro ao carregar dados: " + error.message, "error");
-    console.error(error);
-    return;
+    allRows = data || [];
+    loadingState.style.display = "none";
+    renderRows(allRows);
+  } catch (err) {
+    loadingState.style.display = "none";
+    showToast("Erro inesperado ao carregar dados.", "error");
+    console.error(err);
   }
-
-  allRows = data || [];
-  renderRows(allRows);
 }
 
 function renderRows(rows) {
@@ -217,9 +223,9 @@ modalForm.addEventListener("submit", async (e) => {
 
   let error;
   if (editingId) {
-    ({ error } = await supabase.from(TABLE).update(payload).eq("id", editingId));
+    ({ error } = await supabaseClient.from(TABLE).update(payload).eq("id", editingId));
   } else {
-    ({ error } = await supabase.from(TABLE).insert(payload));
+    ({ error } = await supabaseClient.from(TABLE).insert(payload));
   }
 
   submitBtn.disabled = false;
@@ -261,7 +267,7 @@ document.getElementById("btnConfirmDelete").addEventListener("click", async () =
   btn.disabled = true;
   btn.textContent = "Excluindo...";
 
-  const { error } = await supabase.from(TABLE).delete().eq("id", deletingId);
+  const { error } = await supabaseClient.from(TABLE).delete().eq("id", deletingId);
 
   btn.disabled = false;
   btn.textContent = "Excluir";
