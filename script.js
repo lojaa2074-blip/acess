@@ -50,7 +50,7 @@ async function loadRows() {
     const { data, error } = await supabaseClient
       .from(TABLE)
       .select("*")
-      .order("codigo", { ascending: true });
+      .order("dn", { ascending: true });
 
     if (error) {
       loadingState.style.display = "none";
@@ -93,7 +93,7 @@ function buildRowElement(row) {
     <div class="col col-codigo">
       <div class="field-line">
         <span class="row-label">Código</span>
-        <span>${escapeHtml(row.codigo || "")}</span>
+        <span>${escapeHtml(row.dn || "")}</span>
       </div>
     </div>
 
@@ -161,7 +161,7 @@ searchInput.addEventListener("input", () => {
     return;
   }
   const filtered = allRows.filter((r) =>
-    (r.codigo || "").toLowerCase().includes(q) ||
+    (r.dn || "").toLowerCase().includes(q) ||
     (r.nome || "").toLowerCase().includes(q) ||
     (r.cnpj || "").toLowerCase().includes(q)
   );
@@ -190,7 +190,7 @@ function openAddModal() {
 function openEditModal(row) {
   editingId = row.id;
   modalTitle.textContent = "Editar registro";
-  fieldCodigo.value = row.codigo || "";
+  fieldCodigo.value = row.dn || "";
   fieldNome.value = row.nome || "";
   fieldCnpj.value = row.cnpj || "";
   fieldSenha.value = row.senha || "";
@@ -211,7 +211,7 @@ modalForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const payload = {
-    codigo: fieldCodigo.value.trim(),
+    dn: fieldCodigo.value.trim(),
     nome: fieldNome.value.trim(),
     cnpj: fieldCnpj.value.replace(/\D/g, "").slice(0, 14),
     senha: fieldSenha.value.trim(),
@@ -252,7 +252,7 @@ deleteOverlay.addEventListener("click", (e) => {
 
 function openDeleteModal(row) {
   deletingId = row.id;
-  deleteText.textContent = `Tem certeza que deseja excluir "${row.nome || row.codigo}"? Essa ação não pode ser desfeita.`;
+  deleteText.textContent = `Tem certeza que deseja excluir "${row.nome || row.dn}"? Essa ação não pode ser desfeita.`;
   deleteOverlay.classList.add("active");
 }
 
