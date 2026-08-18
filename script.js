@@ -67,6 +67,23 @@ function unlockApp() {
   appContent.style.display = "";
   sessionStorage.setItem("accessUnlocked", "true");
   loadRows();
+  pingHeartbeat();
+}
+
+// ============================================================
+// HEARTBEAT (mantém o projeto Supabase ativo)
+// Atualiza um registro simples sempre que o app é acessado/desbloqueado,
+// gerando atividade no banco para evitar a pausa por inatividade.
+// ============================================================
+async function pingHeartbeat() {
+  try {
+    await supabaseClient
+      .from("heartbeat")
+      .update({ atualizado_em: new Date().toISOString() })
+      .eq("id", 1);
+  } catch (err) {
+    console.warn("Não foi possível atualizar o heartbeat:", err);
+  }
 }
 
 lockForm.addEventListener("submit", (e) => {
