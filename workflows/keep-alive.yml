@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Roda toda segunda e quinta-feira às 03h (UTC) — intervalo de 3-4 dias,
+    # sempre dentro da janela de 7 dias de inatividade do Supabase.
+    - cron: '0 3 * * 1,4'
+  workflow_dispatch: {}  # permite disparar manualmente pela aba "Actions" no GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Atualizar registro de heartbeat no Supabase
+        run: |
+          curl -sS -X PATCH "${SUPABASE_URL}/rest/v1/heartbeat?id=eq.1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"atualizado_em\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
