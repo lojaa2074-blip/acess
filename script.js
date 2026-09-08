@@ -364,6 +364,56 @@ document.getElementById("btnConfirmDelete").addEventListener("click", async () =
 });
 
 // ============================================================
+// BACKUP EM EXCEL
+// Baixa todos os registros da tabela em um arquivo .xlsx
+// ============================================================
+const btnBackup = document.getElementById("btnBackup");
+
+btnBackup.addEventListener("click", async () => {
+  const originalHtml = btnBackup.innerHTML;
+  btnBackup.disabled = true;
+  btnBackup.textContent = "Gerando...";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABLE)
+      .select("*")
+      .order("dn", { ascending: true });
+
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      showToast("Nenhum registro para exportar.", "error");
+      return;
+    }
+
+    const dataToExport = data.map((row) => ({
+      "Código": row.dn || "",
+      "Nome": row.nome || "",
+      "CNPJ": row.cnpj || "",
+      "Senha": row.senha || "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    worksheet["!cols"] = [{ wch: 14 }, { wch: 30 }, { wch: 18 }, { wch: 18 }];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Access");
+
+    const hoje = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `access_backup_${hoje}.xlsx`);
+
+    showToast("Backup gerado com sucesso!", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Erro ao gerar backup: " + (err.message || "erro desconhecido"), "error");
+  } finally {
+    btnBackup.disabled = false;
+    btnBackup.innerHTML = originalHtml;
+  }
+});
+
+// ============================================================
 // COPIAR
 // ============================================================
 async function copyToClipboard(text, successMsg) {
