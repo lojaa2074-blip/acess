@@ -2,10 +2,9 @@ name: Supabase Keep-Alive
 
 on:
   schedule:
-    # Roda toda segunda e quinta-feira às 03h (UTC) — intervalo de 3-4 dias,
-    # sempre dentro da janela de 7 dias de inatividade do Supabase.
-    - cron: '0 3 * * 1,4'
-  workflow_dispatch: {}  # permite disparar manualmente pela aba "Actions" no GitHub
+    # Todo dia às 09:17 UTC (minuto fora de hora cheia evita atrasos/descartes do GitHub)
+    - cron: '17 9 * * *'
+  workflow_dispatch: {}
 
 jobs:
   ping:
@@ -13,12 +12,18 @@ jobs:
     steps:
       - name: Atualizar registro de heartbeat no Supabase
         run: |
-          curl -sS -X PATCH "${SUPABASE_URL}/rest/v1/heartbeat?id=eq.1" \
+          RESPONSE=$(curl -sS --fail-with-body --retry 3 --retry-delay 5 \
+            -X PATCH "${SUPABASE_URL}/rest/v1/heartbeat?id=eq.1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: return=minimal" \
-            -d "{\"atualizado_em\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+            -H "Prefer: return=representation" \
+            -d "{\"atualizado_em\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+          echo "Resposta: $RESPONSE"
+          if [ -z "$RESPONSE" ] || [ "$RESPONSE" = "[]" ]; then
+            echo "Nenhuma linha foi atualizada (id=1 não existe ou RLS bloqueou)."
+            exit 1
+          fi
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
